@@ -63,6 +63,8 @@ search_url_template = 'http://www.google.cn/music/search?q=%s&cat=song'
 albums_search_url_template = 'http://www.google.cn/music/search?q=%s&cat=album'
 song_url_template = 'http://www.google.cn/music/top100/musicdownload?id=%s'
 
+#main window
+main_window='main_window'
 
 #music page
 music_list_treeview = 'music_list_treeview'

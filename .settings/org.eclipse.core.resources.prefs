@@ -1,7 +1,8 @@
-#Sun Apr 11 19:10:26 CST 2010
+#Sun Apr 11 23:39:58 CST 2010
 eclipse.preferences.version=1
 encoding//src/lib/const.py=utf-8
 encoding//src/lib/core.py=utf-8
 encoding//src/lib/manager.py=utf-8
 encoding//src/lib/parser.py=utf-8
+encoding//src/lib/utils.py=utf-8
 encoding//src/utils.py=utf-8
