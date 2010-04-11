@@ -1,0 +1,40 @@
+#!/bin/bash
+
+[[ $UID == 0 ]] || { echo "Must be root to run this script."; exit 0; }
+
+INSTALL(){
+	install -d /usr/share/gmbox/
+	install -d /usr/share/gmbox/pixbufs
+	install -d /usr/share/gmbox/data
+	install -d /usr/share/gmbox/lib
+	install -m 0644 pixbufs/*.png /usr/share/gmbox/pixbufs
+	install -m 0644 data/config.xml.sample /usr/share/gmbox/data
+	install -m 0755 src/{cli,mainwin}.py /usr/share/gmbox/
+	install -m 0644 src/{player,statusbar,tabview,treeview,threads,dialogs,config}.py /usr/share/gmbox/
+	install -m 0644 src/lib/*.py /usr/share/gmbox/lib
+	install -m 0644 gmbox.desktop /usr/share/applications
+	ln -sf /usr/share/gmbox/cli.py /usr/bin/gmbox
+	echo "install successful."
+}
+UNINSTALL(){
+	rm /usr/bin/gmbox
+	rm -r /usr/share/gmbox/
+	rm /usr/share/applications/gmbox.desktop
+	echo "uninstall successful."
+}
+
+case "$1" in
+	"-i"|"--install")
+		INSTALL
+	;;
+	"-u"|"--uninstall")
+		UNINSTALL
+	;;
+	*)
+		cat << EOF
+Uasge: 
+	run $0 -i to install
+	run $0 -u to uninstall
+EOF
+	;;
+esac

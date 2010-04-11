@@ -1,0 +1,13 @@
+windows下运行需要安装:
+	python-2.6.2.msi
+	gtk-2.12.9-win32-1.exe
+	gtk-2.12.9-win32-2.exe
+	pycairo-1.4.12-2.win32-py2.6.exe
+	pygobject-2.14.2-2.win32-py2.6.exe
+	pygtk-2.12.1-3.win32-py2.6.exe
+
+	mpxplayer.exe
+
+由于不知如何实现多线程,所以windows下的现在只能出来界面。
+
+发现一款媒体库： pymedia-1.3.7.3.tar.gz,也许可以取代mpg123

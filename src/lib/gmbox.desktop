@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=gmbox
+Name[zh_CN]=google music box
+Comment=谷歌音乐下载器
+Exec=python /usr/share/gmbox/mainwin.py
+Terminal=false
+Type=Application
+StartupNotify=true
+Icon=/usr/share/gmbox/pixbufs/gmbox.png
+Categories=AudioVideo;
+

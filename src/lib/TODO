@@ -1,0 +1,159 @@
+************************************TODO LIST*****************************
+6. 歌词页面的解析问题。。。还有未来可能的下载页面的解析。
+	主要在那个js脚本的破解
+5. type ":" to let command entry focus, how to implement it?
+
+*4.如何终止线程？现在用信号量，很麻烦，还有异常。
+    现在能实现自动播放模式：一首完成后自动播放下一首。
+	在本地文件列表中使用正常，因为不涉及下载，信号量处理少
+	在榜单列表下，现在情况是：终止一首试听时，下载并未一并终止，因为终止歌曲我用系统命令，而如何终止下载呢？
+
+3.Search页面的解析。。。。	fixed
+2.快捷键设置问题：不加修饰键的话，会出来一个输入框，如何禁用？	--fixed by amoblin,when asked to lerosua
+ 这个输入框我想只在输入斜杠时才出来，做搜索用，像vim一样。。。
+ 回车播放，空格切换播放暂停
+
+1.glade文件里button添加图片如何实现？----amoblin？
+	---fixed by lerosua
+**************************************DISCUSS******************************
+关于命令行界面的问题：
+	用ncurses吗？
+
+配置文件~/.gmbox/gmboxrc	xml文档	
+包含快捷键设置(针对GUI) ，初始界面设置(针对CLI)
+	结构如何设计？	可参考openbox 的rc.xml
+
+********************gmbox.py*****************************
+
+ListParser:
+	解析榜单页面并返回数据
+Abs_List:List，PlayList，FileList的抽象类
+
+List:
+	初始化数据模板	title,artist,id
+
+	调用ListParse解析榜单页面,得到数据,填充模板
+	调用ListLocalFile从本地文件夹得到数据,填充模板
+	调用Playlist从歌曲列表文件得到数据,填充模板
+
+	找下载地址
+		是否联网(用DBUS)
+		分析页面，找下载地址
+	下载：
+		如果找到下载地址 
+			从下载地址下载到临时文件	[临时文件是 歌名+歌手.mp3.downloading -by bones]
+			下载完成后恢复歌曲名
+		没找到
+			报错
+	直接下载:	肯定存在url的情况下
+		从下载地址下载到临时文件	[临时文件是 歌名+歌手.mp3.downloading -by bones]
+	试听：
+		检测本地是否有文件或缓存文件,存在：
+			播放
+		不存在:
+			找下载地址 找到下载地址
+				启动线程:下载(试听模式)
+				播放
+				保存文件
+			如果没找到:
+				报错
+		播放自动完成后恢复歌曲名(播放一半时转而试听其他歌曲，则不恢复歌曲名，从用户体验角度考虑，这种情况说明不太喜欢这首歌，下次试听重新覆盖下载，而若完整听完，则恢复文件名，下次可从本地播放了。。
+
+PlayList
+	title,artist,id
+
+FileList
+	title,artist,id
+
+SearchList
+	title,artist,album,id
+
+
+
+*******************MainWindow.py*******************
+
+
+整理：
+	GUI事件处理过程：
+		事件触发绑定函数	doActoion
+			获得数据
+			启动线程，执行相关函数	Action
+				初始化
+				执行
+				
+
+
+
+初始化榜单 treeview list_model
+初始化播放列表 treeview playlist_model
+绑定快捷键 key_checker			可参考snownews的快捷键绑定
+	h:		hide					window.hide()
+
+	a:		add to playlist	
+	n:		play next song			playnext
+	p:		play previous song		playprev
+	Return:	play					listen
+	Space:	play/pause			
+	j:		focus next song			
+	k:		focus previous song
+
+榜单下载：
+	点击 获取列表，执行doSearch函数
+		启动下载列表线程 downList
+			设置按钮不可再点
+			实例化Lists对象 _songlist
+			设置当前列表
+			清空列表list_model
+			填入列表list_model
+			恢复按钮可再点
+	点击 本地歌曲列表 执行 doListLocalFile
+		启动线程 listLocalFile	
+			设置按钮不可点
+			实例化ListFile对象 _songlist
+			设置当前列表
+			清空列表list_model
+			填入列表list_model
+			恢复按钮可再点
+	歌曲列表 TreeView 鼠标操作	执行 click_checker
+		得到当前索引
+		设置当前播放位置	TODO:改为设置当前聚焦位置
+		如果是右键	执行 SetupPopup
+			菜单项 下载 执行 downone
+				添加到下载列表
+				启动新线程 执行	gmbox.  downone
+			菜单项 试听 执行 listen
+				启动新线程 执行 play
+			菜单项 添加 执行 addToPlaylist
+
+关于当前位置：
+		1.current path
+		2.current_list
+		3.current model
+		4.current Treeview
+
+本地文件列表：
+	扫描本地文件，忽略下载的临时文件
+	播放：检测是否循环播放，然后播放
+	添加到列表：
+下载管理：
+	down_tree
+	download_list
+播放列表： playlist_tree 鼠标 执行 click_check2
+		得到当前索引
+		设置当前播放位置
+		如果是右键	执行 SetupPopup2
+			菜单项 试听 执行 listen_init -> listen
+				play
+			菜单项 删除 执行 
+
+设置系统托盘	setupSystray
+	系统托盘	设置右键菜单 systrayPopup
+		Restore
+		Previous	tray_play_prev
+			检测当前treeview
+			play_prev
+		Play/Pause	tray_play_next
+			检测当前treeview
+			play_next
+		Next
+		Quit

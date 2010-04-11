@@ -136,9 +136,16 @@ class album_page:
         if text != '-Select-':
             self.music_album_combo.set_sensitive(False)
             print 'Selected music type=', text
-            gmbox.get_album_IDs(text, self.updateMusicAlbumTreeView)
+            gmbox.get_album_IDs(text, self.updatePageDownloadProgress, self.updateMusicAlbumTreeView)
      
+    def updatePageDownloadProgress(self, current_page=0, total_pages=100):
+        """
+        Update the download progress bar.
+        """
         
+        print 'updatePageDownloadProgress,count=', current_page, "total=", total_pages
+        
+        self.progressbar.set_fraction(float(current_page) / total_pages)
 
             
     def updateMusicAlbumTreeView(self, songlist):
