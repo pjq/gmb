@@ -82,6 +82,10 @@ class music_page:
         menuitem.connect('activate', lambda w:self.downloadSelection(self.current_selection))
         popupmenu.append(menuitem)
         
+        menuitem = gtk.MenuItem('试听')
+        menuitem.connect('activate', lambda w:self.listenSelection(self.current_selection))
+        popupmenu.append(menuitem)
+        
         popupmenu.show_all()
         popupmenu.popup(None, None, None, 0, time)
         
@@ -101,6 +105,14 @@ class music_page:
             down_thread = threading.Thread(target=gmbox.down_listed, args=(selection, self.updateProgress))
         
         down_thread.start()
+        
+    def listenSelection(self, selection):
+        """
+        Listen the selected music
+        """
+        print 'listenSelection,selection=', selection
+        
+        
                 
                 
     def addMusicColumn(self, treeview, column_list=music_column_list):
@@ -217,9 +229,9 @@ class music_page:
             #print song
             music = song['title']
             singer = song['artist']
-            detail = song['album'] + ' ' + song['id']
-            print music, singer, song_url_template % detail
-            self.music_list_liststore.append(self.createMusicItem(False, i, music, singer , song_url_template % detail)) 
+            detail = song['album'] + ' ' + song_url_template % song['id']
+            print music, singer, detail
+            self.music_list_liststore.append(self.createMusicItem(False, i, music, singer , detail)) 
             i = i + 1        
 
     def createMusicItem(self, selected, id, music, singer, detail):

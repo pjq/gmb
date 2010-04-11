@@ -161,8 +161,8 @@ class album_page:
             #print song
             music = song['name']
             singer = song['memo']
-            detail = song['id']
-            print music, singer, detail
+            detail = albums_list_url_template%song['id']
+            print music, singer,detail
             self.music_album_liststore.append(self.createMusicItem(False, i, music, singer , detail)) 
             i = i + 1   
         

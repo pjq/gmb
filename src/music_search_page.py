@@ -49,7 +49,7 @@ class music_search_page:
         Music search entry press key handle,here just handle "Enter" key.Press "Enter" to do the search
         """
         keyname = gtk.gdk.keyval_name(event.keyval)  
-        print 'keyname=', keyname
+        #print 'keyname=', keyname
         if keyname == "Return":  
             print 'Is Enter,start search'
             self.music_search()  
@@ -99,6 +99,10 @@ class music_search_page:
         menuitem.connect('activate', lambda w:self.downloadSelection(self.current_selection))
         popupmenu.append(menuitem)
         
+        menuitem = gtk.MenuItem('试听')
+        menuitem.connect('activate', lambda w:self.listenSelection(self.current_selection))
+        popupmenu.append(menuitem)
+        
         popupmenu.show_all()
         popupmenu.popup(None, None, None, 0, time)
         
@@ -118,6 +122,12 @@ class music_search_page:
             down_thread = threading.Thread(target=gmbox.down_listed, args=(selection, self.updateProgress))
         
         down_thread.start()
+        
+    def listenSelection(self,selection):
+        """
+        Listen the selected music
+        """
+        print 'listenSelection,selection=',selection
                 
                 
     def addMusicColumn(self, treeview, column_list=music_column_list):
@@ -173,8 +183,8 @@ class music_search_page:
         
     def selected_toggled(self, cell, path):
         # get toggled iter
-        iter = self.music_list_liststore.get_iter((int(path),))
-        fixed = self.music_list_liststore.get_value(iter, COL_STATUS)
+        iter = self.music_search_liststore.get_iter((int(path),))
+        fixed = self.music_search_liststore.get_value(iter, COL_STATUS)
         # do something with the value
         fixed = not fixed
 
@@ -186,7 +196,7 @@ class music_search_page:
             print 'Invert Select[row]:', path
 
         # set new value
-        self.music_list_liststore.set(iter, COL_STATUS, fixed)    
+        self.music_search_liststore.set(iter, COL_STATUS, fixed)    
     
     def getMusiclistThread(self, keywords):
         """
@@ -224,9 +234,9 @@ class music_search_page:
             #print song
             music = song['title']
             singer = song['artist']
-            detail = song['album'] + ' ' + song['id']
-            print music, singer, song_url_template % detail
-            self.music_search_liststore.append(self.createMusicItem(False, i, music, singer , song_url_template % detail)) 
+            detail = song['album'] + song_url_template % song['id']
+            print music, singer, detail
+            self.music_search_liststore.append(self.createMusicItem(False, i, music, singer , detail)) 
             i = i + 1        
 
     def createMusicItem(self, selected, id, music, singer, detail):

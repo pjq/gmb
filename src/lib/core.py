@@ -42,35 +42,35 @@ class Gmbox:
 
     def __str__(self):
         '''print对象的时候调用,由于win下可能会中文乱码,建议使用 listall 方法代替'''
-        return '\n'.join(['Title="%s" Artist="%s" ID="%s"'%
-            (song['title'],song['artist'],song['id']) for song in self.songlist])
+        return '\n'.join(['Title="%s" Artist="%s" ID="%s"' % 
+            (song['title'], song['artist'], song['id']) for song in self.songlist])
 
     def listall(self):
         '''打印当前列表信息'''
-        print '\n'.join(['Num=%d Title="%s" Artist="%s" ID="%s"'%
-            (self.songlist.index(song)+1,song['title'],song['artist'],song['id']) 
+        print '\n'.join(['Num=%d Title="%s" Artist="%s" ID="%s"' % 
+            (self.songlist.index(song) + 1, song['title'], song['artist'], song['id']) 
             for song in self.songlist])
     def listallalbum(self):
         '''打印当前专辑列表信息'''
-        print '\n'.join(['Num=%d Name="%s" Memo="%s" ID="%s"'%
-            (self.albumlist.index(album)+1,album['name'],album['memo'],album['id']) 
+        print '\n'.join(['Num=%d Name="%s" Memo="%s" ID="%s"' % 
+            (self.albumlist.index(album) + 1, album['name'], album['memo'], album['id']) 
             for album in self.albumlist])
     def setup_file_info(self, songname, artist, isalbum, albumname, albumartist, albumnum):
         '''根据设置，组装歌曲信息，返回 [全文件名,路径,文件名]'''
         path = config.item['savedir']
         if config.item['makeartistdir']:
             path = os.path.join(path, artist)
-            filename = songname+'.mp3'
+            filename = songname + '.mp3'
         else:
-            filename = songname+'-'+artist+'.mp3'
+            filename = songname + '-' + artist + '.mp3'
         if isalbum and config.item['makealbumdir']:
-            path = os.path.join(path, albumname+'-'+albumartist)
+            path = os.path.join(path, albumname + '-' + albumartist)
         if isalbum and config.item['addalbumnum']:
             filename = '%02d.%s' % (albumnum, filename)
         filename = str(filename).translate(None, '''\/:*?<>|'"''')
         if len(filename) > 243:
             print u'警告：由于文件名过长，已被截断', filename,
-            filename = filename[:238]+'.mp3'
+            filename = filename[:238] + '.mp3'
             print '-->', filename
         return [os.path.join(path, filename), path, filename]
         
@@ -79,7 +79,7 @@ class Gmbox:
         song = self.songlist[i]
         info = self.setup_file_info(song['title'], song['artist'], self.downalbumnow,
             self.albuminfo['title'] if self.downalbumnow else None,
-            self.albuminfo['artist'] if self.downalbumnow else None, i+1)
+            self.albuminfo['artist'] if self.downalbumnow else None, i + 1)
 
         if not os.path.exists(info[1]):
             os.makedirs(info[1])
@@ -151,7 +151,7 @@ class Gmbox:
 
         if config.item['id3utf8']:
             #在Linux下转换到UTF 编码，现在只有comment里还是乱码
-            os.system('mid3iconv -e gbk "'+nameinfo[0] + '"')
+            os.system('mid3iconv -e gbk "' + nameinfo[0] + '"')
 
     def downall(self, callback=None):
         '''下载当然列表中的所有歌曲'''
@@ -182,18 +182,18 @@ class Gmbox:
     def update_progress(self, blocks, block_size, total_size):
         '''默认的进度显示的回调函数'''
         if total_size > 0 and blocks >= 0:
-            percentage = float(blocks) / (total_size/block_size+1) * 100
+            percentage = float(blocks) / (total_size / block_size + 1) * 100
             if int(time.time()) != int(self.T):
                 self.speed = (blocks * block_size - self.D) / (time.time() - self.T)
                 (self.D, self.T) = (blocks * block_size, time.time())
             print '\r[' + '=' * (int)(percentage / 2) + '>' + \
-                ' ' *(int)(50 - percentage / 2) + \
-                (']  %0.2f%%  %s/s    ' % ( percentage, sizeread(self.speed))),
+                ' ' * (int)(50 - percentage / 2) + \
+                (']  %0.2f%%  %s/s    ' % (percentage, sizeread(self.speed))),
     def update_null(self, arg1, arg2, arg3):
         '''下载歌词或封面时用的回调函数，啥都不显示'''
         pass
         
-    def get_list(self, stype, callback=None,updateTreeView=None):
+    def get_list(self, stype, callback=None, updateTreeView=None):
         '''获取特定榜单'''
         self.downalbumnow = False
         if stype in self.cached_list:
@@ -210,7 +210,7 @@ class Gmbox:
                 print '.',
                 sys.stdout.flush()
                 if callback:
-                    callback( int(i / 25) + 1, (songlists[stype][1] / 25) )
+                    callback(int(i / 25) + 1, (songlists[stype][1] / 25))
             print 'done!'
             self.songlist = p.songlist
             self.cached_list[stype] = copy.copy(p.songlist)
@@ -223,7 +223,7 @@ class Gmbox:
             ['"%s"' % key for key in songlists])
             log.debug('Unknow list:"' + str(stype))
     
-    def get_album_IDs(self, albumlist_name, callback=None,updateTreeView=None):
+    def get_album_IDs(self, albumlist_name, callback=None, updateTreeView=None):
         '''获取专辑列表中的专辑ID'''
         if 'aid_' + albumlist_name in self.cached_list:
             self.albumlist = copy.copy(self.cached_list['aid_' + albumlist_name])
@@ -304,7 +304,7 @@ class Gmbox:
         else:
             return None
         
-    def search(self, key):
+    def search(self, key, callback=None):
         '''搜索关键字'''
         self.downalbumnow = False
         if 's_' + key in self.cached_list:
@@ -317,7 +317,7 @@ class Gmbox:
         sys.stdout.flush()
         pnum = 0
         while isinstance(pnum, int):
-            html = self.get_url_html( search_url_template % (key, pnum) )
+            html = self.get_url_html(search_url_template % (key, pnum))
             p.feed(html)
             pnum = self.__get_pnum_by_html(html)
             print '.',
@@ -325,6 +325,10 @@ class Gmbox:
         print 'done!'
         self.songlist = p.songlist
         self.cached_list['s_' + key] = copy.copy(p.songlist)
+        
+        if callback:
+            callback(self.songlist)
+               
     def searchalbum(self, key):
         '''搜索关键字'''
         if 'said_' + key in self.cached_list:
@@ -337,7 +341,7 @@ class Gmbox:
         sys.stdout.flush()
         pnum = 0
         while isinstance(pnum, int):
-            html = self.get_url_html( albums_search_url_template % (key, pnum) )
+            html = self.get_url_html(albums_search_url_template % (key, pnum))
             p.feed(html)
             pnum = self.__get_pnum_by_html(html)
             print '.',
