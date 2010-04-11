@@ -1,0 +1,255 @@
+#!/usr/bin/env python
+#*_*-coding:utf8-*_*
+'''
+Created on 2010-4-11
+
+@author: pjq
+'''
+
+import gtk
+import threading
+from config import *
+
+from lib.core import gmbox
+
+
+
+
+class music_search_page:
+    """
+    music search page 
+    """
+    
+    def __init__(self, main_layout):
+        """
+        music search init
+        """
+        print 'init music_search_page'
+        self.main_layout = main_layout
+             
+        #music page init
+        self.music_search_treeview = self.main_layout.get_widget(music_search_treeview);  
+        self.music_search_go = self.main_layout.get_widget("music_search_go"); 
+        self.music_search_entry = self.main_layout.get_widget(music_search_entry); 
+        
+        self.music_search_liststore = gtk.ListStore(bool, str, str, str, str)
+        self.music_search_treeview.set_model(self.music_search_liststore)  
+        self.music_search_treeview.connect("button-press-event", self.music_search_treeview_clicked_check)
+        self.addMusicColumn(self.music_search_treeview, music_column_list)
+        
+        self.music_search_go.connect("clicked", self.music_search)
+        
+        self.music_search_entry.connect("key-press-event", self.on_music_search_entry_key_press)  
+                
+        #Get progressbar
+        self.progressbar = self.main_layout.get_widget(progressbar);        
+ 
+    def on_music_search_entry_key_press(self, window, event):  
+        """
+        Music search entry press key handle,here just handle "Enter" key.Press "Enter" to do the search
+        """
+        keyname = gtk.gdk.keyval_name(event.keyval)  
+        print 'keyname=', keyname
+        if keyname == "Return":  
+            print 'Is Enter,start search'
+            self.music_search()  
+    
+    def music_search(self, widget=None):
+        """
+        Press the "Go" Button will search music with the key
+        """
+        key_words = self.music_search_entry.get_text()
+        
+        print 'Search music:', key_words
+        self.getMusiclistThread(key_words)   
+        
+        
+    def music_search_treeview_clicked_check(self, view, event):
+        """
+        When click the right button of the mouse,run here.
+        """
+        print 'treeview_clicked_check'
+        
+        self.get_current_location(event.x, event.y) 
+        
+        if event.button == 3:
+            if gmbox.songlist != None:
+                self.showPopUPMenu()
+
+    def get_current_location(self, x, y):
+        '''Used for save path of mouse click position'''
+
+        pth = self.music_search_treeview.get_path_at_pos(int(x), int(y))
+
+        if pth:
+            path, col, cell_x, cell_y = pth
+            self.current_selection = int(path[0])
+            #log.debug('select index : %d' % self.current_selection)
+        else:
+            self.current_selection = None
+                
+    def showPopUPMenu(self):
+        """
+        Show PopUP Menu when click the right button of the mouse.
+        """
+        print 'showPopUPMenu'
+        time = gtk.get_current_event_time()
+        popupmenu = gtk.Menu()
+        menuitem = gtk.MenuItem('下载')
+        menuitem.connect('activate', lambda w:self.downloadSelection(self.current_selection))
+        popupmenu.append(menuitem)
+        
+        popupmenu.show_all()
+        popupmenu.popup(None, None, None, 0, time)
+        
+    def downloadSelection(self, selection):
+        """
+        Start to download the selection song.
+        """
+        print 'downloadSelection,selection=', selection, "type of selection=", type(selection)
+        
+        
+        if type(selection) == int:
+            #print "type of selection=int"
+            down_thread = threading.Thread(target=gmbox.downone, args=(selection, self.updateProgress))
+            #Should add the callback 
+            #down_thread = threading.Thread(target=gmbox.downone, args=(selection, self.updateProgress))
+        else:
+            down_thread = threading.Thread(target=gmbox.down_listed, args=(selection, self.updateProgress))
+        
+        down_thread.start()
+                
+                
+    def addMusicColumn(self, treeview, column_list=music_column_list):
+        """
+        Add all the column to the treeview.
+        """
+        treeview.get_selection().set_mode(gtk.SELECTION_SINGLE)
+        i = 0
+        while i < column_list.__len__():            
+            self.addOneMusicColumn(treeview, i, column_list[i])
+            i = i + 1
+
+        
+    def addOneMusicColumn(self, treeview , columnId, title):
+        """
+        Add just one Column
+        """
+        #selected
+        if title == music_column_list[0]:
+            renderer = gtk.CellRendererToggle()
+            renderer.connect('toggled', self.selected_toggled)
+            #column = gtk.TreeViewColumn("选中", renderer,active=COL_STATUS)
+            #column = gtk.TreeViewColumn("选中", renderer,text=COL_STATUS)
+            column = gtk.TreeViewColumn(title, renderer)
+            column.set_resizable(True)
+            treeview.append_column(column) 
+        else:
+            #ID,music,singer,details         
+            renderer = gtk.CellRendererText()
+            renderer.set_data("column", columnId)
+            column = gtk.TreeViewColumn(title, renderer, text=columnId)
+            column.set_resizable(True)
+            treeview.append_column(column) 
+    
+            
+    def addMusicListCombo(self, combo):
+        """
+        Add all the music type to the combox list
+        """
+        print 'Init combox'        
+        store = gtk.ListStore(str)
+        
+        store.append(['-Select-'])
+        
+        [store.append([alist]) for alist in songlists]
+        
+        combo.set_model(store)
+        cell = gtk.CellRendererText()
+        combo.pack_start(cell, True)
+        combo.add_attribute(cell, 'text', 0)
+        combo.set_active(0)
+        combo.connect("changed", self.getMusiclistThread)
+        
+    def selected_toggled(self, cell, path):
+        # get toggled iter
+        iter = self.music_list_liststore.get_iter((int(path),))
+        fixed = self.music_list_liststore.get_value(iter, COL_STATUS)
+        # do something with the value
+        fixed = not fixed
+
+        print "Now is Selected= ", fixed
+
+        if not fixed:
+            print 'Select[row]:', path
+        else:
+            print 'Invert Select[row]:', path
+
+        # set new value
+        self.music_list_liststore.set(iter, COL_STATUS, fixed)    
+    
+    def getMusiclistThread(self, keywords):
+        """
+        Search  the Music and get the list  in a thread
+        """
+        print 'getMusiclistThread'
+       
+        self.music_search_go.set_sensitive(False)
+        thread = threading.Thread(target=self.getMusiclist, args=(keywords, None))
+        thread.start()
+        
+        
+                
+    def getMusiclist(self, keywords, data):
+        """
+        get the music list according to the key words
+       """
+              
+        if keywords != None:
+            gmbox.search(keywords, self.updateTreeView)
+            
+    def updateTreeView(self, songlist):
+        """
+        After get the songlist,should update the treeview
+        """
+        print 'updateTreeView'
+        
+        self.music_search_go.set_sensitive(True)
+        self.music_search_liststore.clear()
+        
+        #songlist = gmbox.songlist
+        i = 1
+       
+        for song in songlist:
+            #print song
+            music = song['title']
+            singer = song['artist']
+            detail = song['album'] + ' ' + song['id']
+            print music, singer, song_url_template % detail
+            self.music_search_liststore.append(self.createMusicItem(False, i, music, singer , song_url_template % detail)) 
+            i = i + 1        
+
+    def createMusicItem(self, selected, id, music, singer, detail):
+        """
+        Create a music item,and can add it to the music list
+        """
+        #checkbox = gtk.CheckButton()
+        return [selected, id, music, singer, detail]
+    
+    def updateProgress(self, blocks, block_size, total_size):
+        """
+        Update the download progress bar.
+        """
+        
+        #print 'updateProgress,blocks=', blocks, 'block_size=', block_size, "total_size=", total_size
+        if blocks == -1:
+            self.progressbar.set_fraction(0)
+        elif blocks == -2:
+            print ''
+            self.progressbar.set_fraction(1)
+        else :
+            self.progressbar.set_fraction(float(block_size * blocks) / total_size)
+
+
+if __name__ == '__main__':
+    print 'music search page'
