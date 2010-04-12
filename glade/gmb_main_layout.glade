@@ -314,7 +314,12 @@
                       </packing>
                     </child>
                     <child>
-                      <placeholder/>
+                      <widget class="GtkLabel" id="label11">
+                        <property name="visible">True</property>
+                      </widget>
+                      <packing>
+                        <property name="position">4</property>
+                      </packing>
                     </child>
                     <child>
                       <widget class="GtkCheckButton" id="music_search_page_selectall">
@@ -392,7 +397,6 @@
                     </child>
                     <child>
                       <widget class="GtkComboBox" id="album_page_combo">
-                        <property name="width_request">114</property>
                         <property name="visible">True</property>
                       </widget>
                       <packing>
