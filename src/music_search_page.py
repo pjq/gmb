@@ -35,6 +35,7 @@ class music_search_page:
         self.music_search_liststore = gtk.ListStore(bool, str, str, str, str)
         self.music_search_page_treeview.set_model(self.music_search_liststore)  
         
+        self.music_search_page_download_selected.connect('clicked',self.on_music_search_page_download_selected)
         self.music_search_page_treeview.connect("button-press-event", self.music_search_page_treeview_clicked_check)
         self.music_search_page_selectall.connect('toggled', self.on_music_search_page_selectall)
         
