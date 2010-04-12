@@ -329,7 +329,7 @@ class Gmbox:
         if callback:
             callback(self.songlist)
                
-    def searchalbum(self, key):
+    def searchalbum(self, key,callback=None):
         '''搜索关键字'''
         if 'said_' + key in self.cached_list:
             self.albumlist = copy.copy(self.cached_list['said_' + key])
@@ -349,6 +349,9 @@ class Gmbox:
         print 'done!'
         self.albumlist = p.albumlist
         self.cached_list['said_' + key] = copy.copy(p.albumlist)
+        
+        if callback:
+            callback(p.albumlist)
         
 #全局实例化
 gmbox = Gmbox()

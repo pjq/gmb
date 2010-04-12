@@ -21,6 +21,8 @@
 import logging
 import os,sys,re
 
+from config import *
+
 def module_path():
     """ This will get us the program's directory,
     even if we are frozen using py2exe"""
@@ -88,4 +90,13 @@ def entityrefstr(m):
     else:
         return '&'+m.group(1)+';'
 
-
+def select_all(liststore, widget):
+        """
+        Select all the music
+        """             
+        length = len(liststore)
+        active = widget.get_active()
+        
+        for i in range(length):
+            iter = liststore.get_iter((i,))
+            liststore.set(iter, COL_STATUS, active)

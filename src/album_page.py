@@ -10,6 +10,7 @@ import gtk
 import threading
 from config import *
 from lib.core import gmbox
+from utils import select_all
 
 
 class album_page:
@@ -25,13 +26,20 @@ class album_page:
         
         self.main_layout = main_layout
         #album page init
-        self.music_album_treeview = self.main_layout.get_widget(music_album_treeview);  
-        self.music_album_combo = self.main_layout.get_widget(music_album_combo); 
-        self.music_album_liststore = gtk.ListStore(bool, str, str, str, str)
-        self.music_album_treeview.set_model(self.music_album_liststore)  
-        self.music_album_treeview.connect("button-press-event", self.music_album_treeview_clicked_check)
-        self.addMusicColumn(self.music_album_treeview, music_column_list)
-        self.addMusicAlbumCombo(self.music_album_combo)
+        self.album_page_treeview = self.main_layout.get_widget(album_page_treeview);  
+        self.album_page_combo = self.main_layout.get_widget(album_page_combo); 
+        self.album_page_download_selected = self.main_layout.get_widget(album_page_download_selected)
+        self.album_page_selectall = self.main_layout.get_widget(album_page_selectall)
+        
+        self.album_page_liststore = gtk.ListStore(bool, str, str, str, str)
+        self.album_page_treeview.set_model(self.album_page_liststore)  
+        
+        self.album_page_download_selected.connect('clicked', self.on_album_page_download_selected)
+        self.album_page_treeview.connect("button-press-event", self.album_page_treeview_clicked_check)
+        self.album_page_selectall.connect('toggled', self.on_album_page_selectall)
+        
+        self.addMusicColumn(self.album_page_treeview, music_column_list)
+        self.addMusicAlbumCombo(self.album_page_combo)
         
         #Get progressbar
         self.progressbar = self.main_layout.get_widget(progressbar); 
@@ -64,7 +72,7 @@ class album_page:
             renderer.connect('toggled', self.selected_toggled)
             #column = gtk.TreeViewColumn("选中", renderer,active=COL_STATUS)
             #column = gtk.TreeViewColumn("选中", renderer,text=COL_STATUS)
-            column = gtk.TreeViewColumn(title, renderer)
+            column = gtk.TreeViewColumn(title, renderer, active=COL_STATUS)
             column.set_resizable(True)
             treeview.append_column(column) 
         else:
@@ -74,12 +82,17 @@ class album_page:
             column = gtk.TreeViewColumn(title, renderer, text=columnId)
             column.set_resizable(True)
             treeview.append_column(column) 
-            
+       
+    def on_album_page_selectall(self, widget):
+        """
+        Select all
+        """
+        select_all(self.album_page_liststore, widget)        
             
     def selected_toggled(self, cell, path):
         # get toggled iter
-        iter = self.music_list_liststore.get_iter((int(path),))
-        fixed = self.music_list_liststore.get_value(iter, COL_STATUS)
+        iter = self.album_page_liststore.get_iter((int(path),))
+        fixed = self.album_page_liststore.get_value(iter, COL_STATUS)
         # do something with the value
         fixed = not fixed
 
@@ -91,7 +104,7 @@ class album_page:
             print 'Invert Select[row]:', path
 
         # set new value
-        self.music_list_liststore.set(iter, COL_STATUS, fixed)      
+        self.album_page_liststore.set(iter, COL_STATUS, fixed)      
         
         
     def createMusicItem(self, selected, id, music, singer, detail):
@@ -134,7 +147,7 @@ class album_page:
         text = widget.get_active_text().decode('utf8')
         
         if text != '-Select-':
-            self.music_album_combo.set_sensitive(False)
+            self.album_page_combo.set_sensitive(False)
             print 'Selected music type=', text
             gmbox.get_album_IDs(text, self.updatePageDownloadProgress, self.updateMusicAlbumTreeView)
      
@@ -153,21 +166,21 @@ class album_page:
         After get the songlist,should update the treeview
         """
         print 'updateTreeView,songlist=', songlist
-        self.music_album_liststore.clear()
-        self.music_album_combo.set_sensitive(True)
+        self.album_page_liststore.clear()
+        self.album_page_combo.set_sensitive(True)
         i = 1
        
         for song in songlist:
             #print song
             music = song['name']
             singer = song['memo']
-            detail = albums_list_url_template%song['id']
-            print music, singer,detail
-            self.music_album_liststore.append(self.createMusicItem(False, i, music, singer , detail)) 
+            detail = album_song_list_url_template % (song['id'])
+            print music, singer, detail
+            self.album_page_liststore.append(self.createMusicItem(False, i, music, singer , detail)) 
             i = i + 1   
         
         
-    def music_album_treeview_clicked_check(self, view, event):
+    def album_page_treeview_clicked_check(self, view, event):
         """
         When click the right button of the mouse,run here.
         """
@@ -183,7 +196,7 @@ class album_page:
     def get_album_current_location(self, x, y):
         '''Used for save path of mouse click position'''
 
-        pth = self.music_album_treeview.get_path_at_pos(int(x), int(y))
+        pth = self.album_page_treeview.get_path_at_pos(int(x), int(y))
 
         if pth:
             path, col, cell_x, cell_y = pth
@@ -208,6 +221,16 @@ class album_page:
         popupmenu.show_all()
         popupmenu.popup(None, None, None, 0, time)
         
+        
+    def on_album_page_download_selected(self, widget):
+        print 'on_music_search_page_download_selected'
+        length = len(self.album_page_liststore)
+        
+        selected = [i for i in range(length) \
+                         if self.album_page_liststore.get_value \
+                         (self.album_page_liststore.get_iter((i,)), COL_STATUS) ]
+        
+        self.downloadSelection(selected)
         
     def downloadAlbumSelection(self, selection):
         """

@@ -11,9 +11,7 @@ import threading
 from config import *
 
 from lib.core import gmbox
-
-
-
+from utils import select_all
 
 class music_search_page:
     """
@@ -28,23 +26,28 @@ class music_search_page:
         self.main_layout = main_layout
              
         #music page init
-        self.music_search_treeview = self.main_layout.get_widget(music_search_treeview);  
-        self.music_search_go = self.main_layout.get_widget("music_search_go"); 
-        self.music_search_entry = self.main_layout.get_widget(music_search_entry); 
-        
+        self.music_search_page_treeview = self.main_layout.get_widget(music_search_page_treeview);  
+        self.music_search_page_go = self.main_layout.get_widget(music_search_page_go); 
+        self.music_search_page_entry = self.main_layout.get_widget(music_search_page_entry);
+        self.music_search_page_download_selected = self.main_layout.get_widget(music_search_page_download_selected)
+        self.music_search_page_selectall = self.main_layout.get_widget(music_search_page_selectall) 
+               
         self.music_search_liststore = gtk.ListStore(bool, str, str, str, str)
-        self.music_search_treeview.set_model(self.music_search_liststore)  
-        self.music_search_treeview.connect("button-press-event", self.music_search_treeview_clicked_check)
-        self.addMusicColumn(self.music_search_treeview, music_column_list)
+        self.music_search_page_treeview.set_model(self.music_search_liststore)  
         
-        self.music_search_go.connect("clicked", self.music_search)
+        self.music_search_page_treeview.connect("button-press-event", self.music_search_page_treeview_clicked_check)
+        self.music_search_page_selectall.connect('toggled', self.on_music_search_page_selectall)
         
-        self.music_search_entry.connect("key-press-event", self.on_music_search_entry_key_press)  
+        self.addMusicColumn(self.music_search_page_treeview, music_column_list)
+        
+        self.music_search_page_selectall.connect('clicked', self.on_music_search_page_download_selected)
+        self.music_search_page_go.connect("clicked", self.music_search)        
+        self.music_search_page_entry.connect("key-press-event", self.on_music_search_page_entry_key_press)  
                 
         #Get progressbar
         self.progressbar = self.main_layout.get_widget(progressbar);        
  
-    def on_music_search_entry_key_press(self, window, event):  
+    def on_music_search_page_entry_key_press(self, window, event):  
         """
         Music search entry press key handle,here just handle "Enter" key.Press "Enter" to do the search
         """
@@ -58,13 +61,18 @@ class music_search_page:
         """
         Press the "Go" Button will search music with the key
         """
-        key_words = self.music_search_entry.get_text()
+        key_words = self.music_search_page_entry.get_text()
         
         print 'Search music:', key_words
         self.getMusiclistThread(key_words)   
+    
+    def on_music_search_page_selectall(self, widget):
+        """
+        Select all
+        """
+        select_all(self.music_search_liststore, widget)    
         
-        
-    def music_search_treeview_clicked_check(self, view, event):
+    def music_search_page_treeview_clicked_check(self, view, event):
         """
         When click the right button of the mouse,run here.
         """
@@ -79,7 +87,7 @@ class music_search_page:
     def get_current_location(self, x, y):
         '''Used for save path of mouse click position'''
 
-        pth = self.music_search_treeview.get_path_at_pos(int(x), int(y))
+        pth = self.music_search_page_treeview.get_path_at_pos(int(x), int(y))
 
         if pth:
             path, col, cell_x, cell_y = pth
@@ -106,6 +114,16 @@ class music_search_page:
         popupmenu.show_all()
         popupmenu.popup(None, None, None, 0, time)
         
+    def on_music_search_page_download_selected(self, widget):
+        print 'on_music_search_page_download_selected'
+        length = len(self.music_search_liststore)
+        
+        selected = [i for i in range(length) \
+                         if self.music_search_liststore.get_value \
+                         (self.music_search_liststore.get_iter((i,)), COL_STATUS) ]
+        
+        self.downloadSelection(selected)
+        
     def downloadSelection(self, selection):
         """
         Start to download the selection song.
@@ -123,11 +141,11 @@ class music_search_page:
         
         down_thread.start()
         
-    def listenSelection(self,selection):
+    def listenSelection(self, selection):
         """
         Listen the selected music
         """
-        print 'listenSelection,selection=',selection
+        print 'listenSelection,selection=', selection
                 
                 
     def addMusicColumn(self, treeview, column_list=music_column_list):
@@ -149,9 +167,10 @@ class music_search_page:
         if title == music_column_list[0]:
             renderer = gtk.CellRendererToggle()
             renderer.connect('toggled', self.selected_toggled)
+            renderer.set_active(True)
             #column = gtk.TreeViewColumn("选中", renderer,active=COL_STATUS)
             #column = gtk.TreeViewColumn("选中", renderer,text=COL_STATUS)
-            column = gtk.TreeViewColumn(title, renderer)
+            column = gtk.TreeViewColumn(title, renderer, active=COL_STATUS)
             column.set_resizable(True)
             treeview.append_column(column) 
         else:
@@ -204,7 +223,7 @@ class music_search_page:
         """
         print 'getMusiclistThread'
        
-        self.music_search_go.set_sensitive(False)
+        self.music_search_page_go.set_sensitive(False)
         thread = threading.Thread(target=self.getMusiclist, args=(keywords, None))
         thread.start()
         
@@ -224,7 +243,7 @@ class music_search_page:
         """
         print 'updateTreeView'
         
-        self.music_search_go.set_sensitive(True)
+        self.music_search_page_go.set_sensitive(True)
         self.music_search_liststore.clear()
         
         #songlist = gmbox.songlist

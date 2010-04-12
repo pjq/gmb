@@ -67,19 +67,32 @@ song_url_template = 'http://www.google.cn/music/top100/musicdownload?id=%s'
 main_window='main_window'
 
 #music page
-music_list_treeview = 'music_list_treeview'
-music_list_combo = 'music_list_combo'
+music_page_treeview = 'music_page_treeview'
+music_page_combo = 'music_page_combo'
 music_page_download_selected = 'music_page_download_selected'
+music_page_selectall='music_page_selectall'
 
 #music search page
-music_search_treeview = 'music_search_treeview'
-music_search_entry = 'music_search_entry'
-music_search_button = 'music_search_button'
-music_search_selectall = 'music_search_selectall'
+music_search_page_treeview = 'music_search_page_treeview'
+music_search_page_entry = 'music_search_page_entry'
+music_search_page_go = 'music_search_page_go'
+music_search_page_download_selected = 'music_search_page_download_selected'
+music_search_page_selectall = 'music_search_page_selectall'
 
 #album page
-music_album_treeview = 'music_album_treeview'
-music_album_combo = 'music_album_combo'
+album_page_treeview = 'album_page_treeview'
+album_page_combo = 'album_page_combo'
+album_page_download_selected = 'album_page_download_selected'
+album_page_selectall = 'album_page_selectall'
+
+#album search page
+#music search page
+album_search_page_treeview = 'album_search_page_treeview'
+album_search_page_entry = 'album_search_page_entry'
+album_search_page_go = 'album_search_page_go'
+album_search_page_download_selected = 'album_search_page_download_selected'
+album_search_page_selectall = 'album_search_page_selectall'
+
 
 #progressbar
 progressbar = 'progressbar'
