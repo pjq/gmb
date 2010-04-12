@@ -40,7 +40,7 @@ class album_search_page:
         
         self.addMusicColumn(self.album_search_page_treeview, music_column_list)
         
-        self.album_search_page_selectall.connect('clicked', self.on_album_search_page_download_selected)
+        self.on_album_search_page_download_selected.connect('clicked', self.on_album_search_page_download_selected)
         self.album_search_page_go.connect("clicked", self.album_search)        
         self.album_search_page_entry.connect("key-press-event", self.on_album_search_page_entry_key_press)  
                 
